@@ -16,19 +16,18 @@
  */
 package spark;
 
-public abstract class ExceptionHandlerImpl<T extends Exception> implements ExceptionHandler<T> {
-
+public abstract class ExceptionHandlerImpl implements ExceptionHandler {
     /**
      * Holds the type of exception that this filter will handle
      */
-    protected Class<? extends T> exceptionClass;
+    protected Class<? extends Exception> exceptionClass;
 
     /**
      * Initializes the filter with the provided exception type
      *
      * @param exceptionClass Type of exception
      */
-    public ExceptionHandlerImpl(Class<T> exceptionClass) {
+    public ExceptionHandlerImpl(Class<? extends Exception> exceptionClass) {
         this.exceptionClass = exceptionClass;
     }
 
@@ -37,7 +36,7 @@ public abstract class ExceptionHandlerImpl<T extends Exception> implements Excep
      *
      * @return Type of exception
      */
-    public Class<? extends T> exceptionClass() {
+    public Class<? extends Exception> exceptionClass() {
         return this.exceptionClass;
     }
 
@@ -46,7 +45,7 @@ public abstract class ExceptionHandlerImpl<T extends Exception> implements Excep
      *
      * @param exceptionClass Type of exception
      */
-    public void exceptionClass(Class<? extends T> exceptionClass) {
+    public void exceptionClass(Class<? extends Exception> exceptionClass) {
         this.exceptionClass = exceptionClass;
     }
 
@@ -57,5 +56,5 @@ public abstract class ExceptionHandlerImpl<T extends Exception> implements Excep
      * @param request   The request object providing information about the HTTP request
      * @param response  The response object providing functionality for modifying the response
      */
-    public abstract void handle(T exception, Request request, Response response);
+    public abstract void handle(Exception exception, Request request, Response response);
 }

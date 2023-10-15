@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import spark.ExceptionMapper;
 import spark.globalstate.ServletFlag;
 import spark.http.matching.MatcherFilter;
 import spark.route.ServletRoutes;
@@ -72,7 +71,7 @@ public class SparkFilter implements Filter {
 
         filterPath = FilterTools.getFilterPath(filterConfig);
 
-        matcherFilter = new MatcherFilter(ServletRoutes.get(), StaticFilesConfiguration.servletInstance, ExceptionMapper.getServletInstance(), true, false);
+        matcherFilter = new MatcherFilter(ServletRoutes.get(), StaticFilesConfiguration.servletInstance, true, false);
     }
 
     /**

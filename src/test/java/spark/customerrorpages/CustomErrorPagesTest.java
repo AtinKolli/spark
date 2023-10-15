@@ -81,5 +81,4 @@ public class CustomErrorPagesTest {
         Assert.assertEquals(500, response.status);
         Assert.assertEquals(CustomErrorPages.INTERNAL_ERROR, response.body);
     }
-
 }

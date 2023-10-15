@@ -23,10 +23,8 @@ public class SslStores {
 
     protected String keystoreFile;
     protected String keystorePassword;
-    protected String certAlias;
     protected String truststoreFile;
     protected String truststorePassword;
-    protected boolean needsClientCert;
 
     /**
      * Creates a Stores instance.
@@ -42,49 +40,17 @@ public class SslStores {
                                 String truststoreFile,
                                 String truststorePassword) {
 
-        return new SslStores(keystoreFile, keystorePassword, null, truststoreFile, truststorePassword, false);
-    }
-
-    public static SslStores create(String keystoreFile,
-                                String keystorePassword,
-                                String certAlias,
-                                String truststoreFile,
-                                String truststorePassword) {
-
-        return new SslStores(keystoreFile, keystorePassword, certAlias, truststoreFile, truststorePassword, false);
-    }
-
-    public static SslStores create(String keystoreFile,
-                                   String keystorePassword,
-                                   String truststoreFile,
-                                   String truststorePassword,
-                                   boolean needsClientCert) {
-
-        return new SslStores(keystoreFile, keystorePassword, null, truststoreFile, truststorePassword, needsClientCert);
-    }
-
-    public static SslStores create(String keystoreFile,
-                                   String keystorePassword,
-                                   String certAlias,
-                                   String truststoreFile,
-                                   String truststorePassword,
-                                   boolean needsClientCert) {
-
-        return new SslStores(keystoreFile, keystorePassword, certAlias, truststoreFile, truststorePassword, needsClientCert);
+        return new SslStores(keystoreFile, keystorePassword, truststoreFile, truststorePassword);
     }
 
     private SslStores(String keystoreFile,
                       String keystorePassword,
-                      String certAlias,
                       String truststoreFile,
-                      String truststorePassword,
-                      boolean needsClientCert) {
+                      String truststorePassword) {
         this.keystoreFile = keystoreFile;
         this.keystorePassword = keystorePassword;
-        this.certAlias = certAlias;
         this.truststoreFile = truststoreFile;
         this.truststorePassword = truststorePassword;
-        this.needsClientCert = needsClientCert;
     }
 
     /**
@@ -102,13 +68,6 @@ public class SslStores {
     }
 
     /**
-     * @return certAlias
-     */
-    public String certAlias() {
-        return certAlias;
-    }
-
-    /**
      * @return trustStoreFile
      */
     public String trustStoreFile() {
@@ -120,12 +79,5 @@ public class SslStores {
      */
     public String trustStorePassword() {
         return truststorePassword;
-    }
-
-    /**
-     * @return needsClientCert
-     */
-    public boolean needsClientCert() {
-        return needsClientCert;
     }
 }

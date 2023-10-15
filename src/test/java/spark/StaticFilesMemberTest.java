@@ -100,17 +100,6 @@ public class StaticFilesMemberTest {
     }
 
     @Test
-    public void testStaticFileMjs() throws Exception {
-        SparkTestUtil.UrlResponse response = testUtil.doMethod("GET", "/js/module.mjs", null);
-
-        String expectedContentType = response.headers.get("Content-Type");
-        Assert.assertEquals(expectedContentType, "application/javascript");
-
-        String body = response.body;
-        Assert.assertEquals("export default function () { console.log(\"Hello, I'm a .mjs file\"); }\n", body);
-    }
-
-    @Test
     public void testStaticFilePagesIndexHtml() throws Exception {
         SparkTestUtil.UrlResponse response = testUtil.doMethod("GET", "/pages/index.html", null);
         Assert.assertEquals(200, response.status);
@@ -139,12 +128,10 @@ public class StaticFilesMemberTest {
 
     @Test
     public void testStaticFileHeaders() throws Exception {
-        staticFiles.headers(new HashMap() {
-            {
-                put("Server", "Microsoft Word");
-                put("Cache-Control", "private, max-age=600");
-            }
-        });
+        staticFiles.headers(new HashMap<String, String>() {{
+            put("Server", "Microsoft Word");
+            put("Cache-Control", "private, max-age=600");
+        }});
         SparkTestUtil.UrlResponse response = testUtil.doMethod("GET", "/pages/index.html", null);
         Assert.assertEquals("Microsoft Word", response.headers.get("Server"));
         Assert.assertEquals("private, max-age=600", response.headers.get("Cache-Control"));
@@ -178,4 +165,5 @@ public class StaticFilesMemberTest {
         Assert.assertEquals(404, response.status);
         Assert.assertEquals(NOT_FOUND_BRO, response.body);
     }
+
 }

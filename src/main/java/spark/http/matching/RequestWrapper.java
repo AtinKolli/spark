@@ -72,9 +72,6 @@ final class RequestWrapper extends Request {
     }
 
     @Override
-    public String matchedPath() { return delegate.matchedPath(); }
-
-    @Override
     public String servletPath() {
         return delegate.servletPath();
     }
@@ -143,10 +140,6 @@ final class RequestWrapper extends Request {
     public String queryParams(String queryParam) {
         return delegate.queryParams(queryParam);
     }
-    
-    @Override
-    public String queryParamsSafe(String queryParam) { return delegate.queryParams(queryParam); }
-
 
     @Override
     public String[] queryParamsValues(String queryParam) {

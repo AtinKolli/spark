@@ -80,7 +80,7 @@ public class ClassPathResourceHandler extends AbstractResourceHandler {
             }
 
             if (resource != null && resource.exists()) {
-                DirectoryTraversal.protectAgainstInClassPath(resource.getPath(), baseResource);
+                DirectoryTraversal.protectAgainstInClassPath(resource.getPath());
                 return resource;
             } else {
                 return null;

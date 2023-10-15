@@ -1,15 +1,12 @@
 package spark;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import spark.util.SparkTestUtil;
 import spark.util.SparkTestUtil.UrlResponse;
 
@@ -45,15 +42,21 @@ public class GenericSecureIntegrationTest {
             halt(401, "Go Away!");
         });
 
-        get("/hi", (request, response) -> "Hello World!");
+        get("/hi", (request, response) -> {
+            return "Hello World!";
+        });
 
-        get("/ip", (request, response) -> request.ip());
+        get("/:param", (request, response) -> {
+            return "echo: " + request.params(":param");
+        });
 
-        get("/:param", (request, response) -> "echo: " + request.params(":param"));
+        get("/paramwithmaj/:paramWithMaj", (request, response) -> {
+            return "echo: " + request.params(":paramWithMaj");
+        });
 
-        get("/paramwithmaj/:paramWithMaj", (request, response) -> "echo: " + request.params(":paramWithMaj"));
-
-        get("/", (request, response) -> "Hello Root!");
+        get("/", (request, response) -> {
+            return "Hello Root!";
+        });
 
         post("/poster", (request, response) -> {
             String body = request.body();
@@ -80,20 +83,6 @@ public class GenericSecureIntegrationTest {
         Assert.assertEquals(200, response.status);
         Assert.assertEquals("Hello World!", response.body);
     }
-
-    @Test
-    public void testXForwardedFor() throws Exception {
-        final String xForwardedFor = "XXX.XXX.XXX.XXX";
-        Map<String, String> headers = new HashMap<>();
-        headers.put("X-Forwarded-For", xForwardedFor);
-
-        UrlResponse response = testUtil.doMethod("GET", "/ip", null, true, "text/html", headers);
-        Assert.assertEquals(xForwardedFor, response.body);
-
-        response = testUtil.doMethod("GET", "/ip", null, true, "text/html", null);
-        Assert.assertNotEquals(xForwardedFor, response.body);
-    }
-
 
     @Test
     public void testHiHead() throws Exception {

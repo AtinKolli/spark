@@ -19,7 +19,6 @@ package spark.embeddedserver;
 import java.util.HashMap;
 import java.util.Map;
 
-import spark.ExceptionMapper;
 import spark.embeddedserver.jetty.EmbeddedJettyFactory;
 import spark.route.Routes;
 import spark.staticfiles.StaticFilesConfiguration;
@@ -37,26 +36,11 @@ public class EmbeddedServers {
     private static Map<Object, EmbeddedServerFactory> factories = new HashMap<>();
 
     public static void initialize() {
-        if (!factories.containsKey(Identifiers.JETTY)) {
-            add(Identifiers.JETTY, new EmbeddedJettyFactory());
-        }
+        add(Identifiers.JETTY, new EmbeddedJettyFactory());
     }
 
     public static Identifiers defaultIdentifier() {
         return Identifiers.JETTY;
-    }
-
-    @Deprecated
-    public static EmbeddedServer create(Object identifier,
-                                        Routes routeMatcher,
-                                        StaticFilesConfiguration staticFilesConfiguration,
-                                        boolean multipleHandlers) {
-
-        return create(identifier,
-                      routeMatcher,
-                      ExceptionMapper.getServletInstance(),
-                      staticFilesConfiguration,
-                      multipleHandlers);
     }
 
     /**
@@ -70,14 +54,13 @@ public class EmbeddedServers {
      */
     public static EmbeddedServer create(Object identifier,
                                         Routes routeMatcher,
-                                        ExceptionMapper exceptionMapper,
                                         StaticFilesConfiguration staticFilesConfiguration,
                                         boolean multipleHandlers) {
 
         EmbeddedServerFactory factory = factories.get(identifier);
 
         if (factory != null) {
-            return factory.create(routeMatcher, staticFilesConfiguration, exceptionMapper, multipleHandlers);
+            return factory.create(routeMatcher, staticFilesConfiguration, multipleHandlers);
         } else {
             throw new RuntimeException("No embedded server matching the identifier");
         }

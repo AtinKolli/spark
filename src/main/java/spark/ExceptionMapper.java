@@ -20,27 +20,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ExceptionMapper {
-
     /**
-     * Holds an exception mapper instance for use in servlet mode
+     * Holds a default instance for the exception mapper
      */
-    private static ExceptionMapper servletInstance;
-
-    @Deprecated
-    public static ExceptionMapper getInstance() {
-        return getServletInstance();
-    }
+    private static ExceptionMapper defaultInstance;
 
     /**
-     * Returns exception mapper instance used in servlet mode
+     * Returns the default instance for the exception mapper
      *
-     * @return servlet instance
+     * @return Default instance
      */
-    public synchronized static ExceptionMapper getServletInstance() {
-        if (servletInstance == null) {
-            servletInstance = new ExceptionMapper();
+    public synchronized static ExceptionMapper getInstance() {
+        if (defaultInstance == null) {
+            defaultInstance = new ExceptionMapper();
         }
-        return servletInstance;
+        return defaultInstance;
     }
 
     /**
@@ -111,12 +105,4 @@ public class ExceptionMapper {
     public ExceptionHandlerImpl getHandler(Exception exception) {
         return this.getHandler(exception.getClass());
     }
-
-    /**
-     * Clear the exception mappings.
-     */
-    public void clear() {
-        this.exceptionMap.clear();
-    }
-
 }

@@ -22,8 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import spark.FilterImpl;
-import spark.RouteImpl;
 import spark.routematch.RouteMatch;
 import spark.utils.MimeParse;
 import spark.utils.StringUtils;
@@ -53,23 +51,34 @@ public class Routes {
     }
 
     /**
-     * Add a route
+     * Parse and validates a route and adds it
      *
-     * @param httpMethod the http-method of the route
-     * @param route      the route to add
+     * @param route      the route path
+     * @param acceptType the accept type
+     * @param target     the invocation target
      */
-    public void add(HttpMethod httpMethod, RouteImpl route) {
-        add(httpMethod, route.getPath() , route.getAcceptType(), route);
-    }
+    public void add(String route, String acceptType, Object target) {
+        try {
+            int singleQuoteIndex = route.indexOf(SINGLE_QUOTE);
+            String httpMethod = route.substring(0, singleQuoteIndex).trim().toLowerCase(); // NOSONAR
+            String url = route.substring(singleQuoteIndex + 1, route.length() - 1).trim(); // NOSONAR
 
-    /**
-     * Add a filter
-     *
-     * @param httpMethod the http-method of the route
-     * @param filter     the filter to add
-     */
-    public void add(HttpMethod httpMethod, FilterImpl filter) {
-        add(httpMethod, filter.getPath() , filter.getAcceptType(), filter);
+            // Use special enum stuff to get from value
+            HttpMethod method;
+            try {
+                method = HttpMethod.valueOf(httpMethod);
+            } catch (IllegalArgumentException e) {
+                LOG.error("The @Route value: "
+                                  + route
+                                  + " has an invalid HTTP method part: "
+                                  + httpMethod
+                                  + ".");
+                return;
+            }
+            addRoute(method, url, acceptType, target);
+        } catch (Exception e) {
+            LOG.error("The @Route value: " + route + " is not in the correct format", e);
+        }
     }
 
     /**
@@ -83,7 +92,7 @@ public class Routes {
     public RouteMatch find(HttpMethod httpMethod, String path, String acceptType) {
         List<RouteEntry> routeEntries = this.findTargetsForRequestedRoute(httpMethod, path);
         RouteEntry entry = findTargetWithGivenAcceptType(routeEntries, acceptType);
-        return entry != null ? new RouteMatch(entry.target, entry.path, path, acceptType, httpMethod) : null;
+        return entry != null ? new RouteMatch(entry.target, entry.path, path, acceptType) : null;
     }
 
     /**
@@ -103,25 +112,11 @@ public class Routes {
                 String bestMatch = MimeParse.bestMatch(Arrays.asList(routeEntry.acceptedType), acceptType);
 
                 if (routeWithGivenAcceptType(bestMatch)) {
-                    matchSet.add(new RouteMatch(routeEntry.target, routeEntry.path, path, acceptType, httpMethod));
+                    matchSet.add(new RouteMatch(routeEntry.target, routeEntry.path, path, acceptType));
                 }
             } else {
-                matchSet.add(new RouteMatch(routeEntry.target, routeEntry.path, path, acceptType, httpMethod));
+                matchSet.add(new RouteMatch(routeEntry.target, routeEntry.path, path, acceptType));
             }
-        }
-
-        return matchSet;
-    }
-
-    /**
-     * @return the targets
-     */
-    public List<RouteMatch> findAll() {
-        List<RouteMatch> matchSet = new ArrayList<>();
-        List<RouteEntry> routeEntries = routes;
-
-        for (RouteEntry routeEntry : routeEntries) {
-            matchSet.add(new RouteMatch(routeEntry.target, routeEntry.path, "ALL_ROUTES", routeEntry.acceptedType, routeEntry.httpMethod));
         }
 
         return matchSet;
@@ -132,6 +127,7 @@ public class Routes {
      */
     public void clear() {
         routes.clear();
+        RouteOverview.routes.clear();
     }
 
     /**
@@ -182,7 +178,7 @@ public class Routes {
     // PRIVATE METHODS
     //////////////////////////////////////////////////
 
-    private void add(HttpMethod method, String url, String acceptedType, Object target) {
+    private void addRoute(HttpMethod method, String url, String acceptedType, Object target) {
         RouteEntry entry = new RouteEntry();
         entry.httpMethod = method;
         entry.path = url;
@@ -191,6 +187,7 @@ public class Routes {
         LOG.debug("Adds route: " + entry);
         // Adds to end of list
         routes.add(entry);
+        RouteOverview.add(new RouteEntry(entry), target);
     }
 
     //can be cached? I don't think so.
@@ -259,37 +256,5 @@ public class Routes {
         }
 
         return routes.removeAll(forRemoval);
-    }
-
-    /**
-     * Parse and validates a route and adds it
-     *
-     * @param route      the route path
-     * @param acceptType the accept type
-     * @param target     the invocation target
-     */
-    @Deprecated
-    public void add(String route, String acceptType, Object target) {
-        try {
-            int singleQuoteIndex = route.indexOf(SINGLE_QUOTE);
-            String httpMethod = route.substring(0, singleQuoteIndex).trim().toLowerCase(); // NOSONAR
-            String url = route.substring(singleQuoteIndex + 1, route.length() - 1).trim(); // NOSONAR
-
-            // Use special enum stuff to get from value
-            HttpMethod method;
-            try {
-                method = HttpMethod.valueOf(httpMethod);
-            } catch (IllegalArgumentException e) {
-                LOG.error("The @Route value: "
-                              + route
-                              + " has an invalid HTTP method part: "
-                              + httpMethod
-                              + ".");
-                return;
-            }
-            add(method, url, acceptType, target);
-        } catch (Exception e) {
-            LOG.error("The @Route value: " + route + " is not in the correct format", e);
-        }
     }
 }

@@ -18,12 +18,11 @@ package spark.embeddedserver.jetty;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.util.thread.ThreadPool;
 
 /**
  * Creates Jetty Server instances.
  */
-class JettyServer implements JettyServerFactory {
+class JettyServer {
 
     /**
      * Creates a Jetty server.
@@ -33,11 +32,11 @@ class JettyServer implements JettyServerFactory {
      * @param threadTimeoutMillis threadTimeoutMillis
      * @return a new jetty server instance
      */
-    public Server create(int maxThreads, int minThreads, int threadTimeoutMillis) {
+    public static Server create(int maxThreads, int minThreads, int threadTimeoutMillis) {
         Server server;
 
         if (maxThreads > 0) {
-            int max = maxThreads;
+            int max = (maxThreads > 0) ? maxThreads : 200;
             int min = (minThreads > 0) ? minThreads : 8;
             int idleTimeout = (threadTimeoutMillis > 0) ? threadTimeoutMillis : 60000;
 
@@ -49,13 +48,4 @@ class JettyServer implements JettyServerFactory {
         return server;
     }
 
-    /**
-     * Creates a Jetty server with supplied thread pool
-     * @param threadPool thread pool
-     * @return a new jetty server instance
-     */
-    @Override
-    public Server create(ThreadPool threadPool) {
-        return threadPool != null ? new Server(threadPool) : new Server();
-    }
 }

@@ -23,7 +23,6 @@ import java.net.URL;
 
 import spark.utils.Assert;
 import spark.utils.ClassUtils;
-import spark.utils.ResourceUtils;
 import spark.utils.StringUtils;
 
 /**
@@ -75,39 +74,12 @@ public class ClassPathResource extends AbstractFileResolvingResource {
      */
     public ClassPathResource(String path, ClassLoader classLoader) {
         Assert.notNull(path, "Path must not be null");
-        Assert.isTrue(isValid(path), "Path is not valid");
-
         String pathToUse = StringUtils.cleanPath(path);
-
         if (pathToUse.startsWith("/")) {
             pathToUse = pathToUse.substring(1);
         }
-
         this.path = pathToUse;
         this.classLoader = (classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader());
-    }
-
-    private static boolean isValid(final String path) {
-        return !isInvalidPath(path);
-    }
-
-    private static boolean isInvalidPath(String path) {
-        if (path.contains("WEB-INF") || path.contains("META-INF")) {
-            return true;
-        }
-        if (path.contains(":/")) {
-            String relativePath = (path.charAt(0) == '/' ? path.substring(1) : path);
-            if (ResourceUtils.isUrl(relativePath) || relativePath.startsWith("url:")) {
-                return true;
-            }
-        }
-        if (path.contains("")) {
-            path = StringUtils.cleanPath(path);
-            if (path.contains("../")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -136,9 +108,10 @@ public class ClassPathResource extends AbstractFileResolvingResource {
     /**
      * This implementation checks for the resolution of a resource URL.
      *
-     * @return if exists.
      * @see java.lang.ClassLoader#getResource(String)
      * @see java.lang.Class#getResource(String)
+     *
+     * @return if exists.
      */
     @Override
     public boolean exists() {
@@ -154,9 +127,10 @@ public class ClassPathResource extends AbstractFileResolvingResource {
     /**
      * This implementation opens an InputStream for the given class path resource.
      *
-     * @return the input stream.
      * @see java.lang.ClassLoader#getResourceAsStream(String)
      * @see java.lang.Class#getResourceAsStream(String)
+     *
+     * @return the input stream.
      */
     @Override
     public InputStream getInputStream() throws IOException {
@@ -175,9 +149,10 @@ public class ClassPathResource extends AbstractFileResolvingResource {
     /**
      * This implementation returns a URL for the underlying class path resource.
      *
-     * @return the url.
      * @see java.lang.ClassLoader#getResource(String)
      * @see java.lang.Class#getResource(String)
+     *
+     * @return the url.
      */
     @Override
     public URL getURL() throws IOException {
@@ -197,8 +172,9 @@ public class ClassPathResource extends AbstractFileResolvingResource {
      * This implementation creates a ClassPathResource, applying the given path
      * relative to the path of the underlying resource of this descriptor.
      *
-     * @return the resource.
      * @see spark.utils.StringUtils#applyRelativePath(String, String)
+     *
+     * @return the resource.
      */
     @Override
     public Resource createRelative(String relativePath) {
@@ -210,8 +186,9 @@ public class ClassPathResource extends AbstractFileResolvingResource {
      * This implementation returns the name of the file that this class path
      * resource refers to.
      *
-     * @return the file name.
      * @see spark.utils.StringUtils#getFilename(String)
+     *
+     * @return the file name.
      */
     @Override
     public String getFilename() {

@@ -19,10 +19,9 @@ package spark.embeddedserver.jetty.websocket;
 import java.util.Map;
 import java.util.Optional;
 
-import org.eclipse.jetty.http.pathmap.ServletPathSpec;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.websocket.server.NativeWebSocketConfiguration;
 import org.eclipse.jetty.websocket.server.WebSocketUpgradeFilter;
+import org.eclipse.jetty.websocket.server.pathmap.ServletPathSpec;
 import org.eclipse.jetty.websocket.servlet.WebSocketCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ public class WebSocketServletContextHandlerFactory {
      * @return a new websocket servlet context handler or 'null' if creation failed.
      */
     public static ServletContextHandler create(Map<String, WebSocketHandlerWrapper> webSocketHandlers,
-                                               Optional<Long> webSocketIdleTimeoutMillis) {
+                                               Optional<Integer> webSocketIdleTimeoutMillis) {
         ServletContextHandler webSocketServletContextHandler = null;
         if (webSocketHandlers != null) {
             try {
@@ -51,14 +50,9 @@ public class WebSocketServletContextHandlerFactory {
                 if (webSocketIdleTimeoutMillis.isPresent()) {
                     webSocketUpgradeFilter.getFactory().getPolicy().setIdleTimeout(webSocketIdleTimeoutMillis.get());
                 }
-                // Since we are configuring WebSockets before the ServletContextHandler and WebSocketUpgradeFilter is
-                // even initialized / started, then we have to pre-populate the configuration that will eventually
-                // be used by Jetty's WebSocketUpgradeFilter.
-                NativeWebSocketConfiguration webSocketConfiguration = (NativeWebSocketConfiguration) webSocketServletContextHandler
-                    .getServletContext().getAttribute(NativeWebSocketConfiguration.class.getName());
                 for (String path : webSocketHandlers.keySet()) {
                     WebSocketCreator webSocketCreator = WebSocketCreatorFactory.create(webSocketHandlers.get(path));
-                    webSocketConfiguration.addMapping(new ServletPathSpec(path), webSocketCreator);
+                    webSocketUpgradeFilter.addMapping(new ServletPathSpec(path), webSocketCreator);
                 }
             } catch (Exception ex) {
                 logger.error("creation of websocket context handler failed.", ex);

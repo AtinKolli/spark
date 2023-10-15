@@ -59,9 +59,7 @@ final class Routes {
                 context.responseWrapper().setDelegate(context.response());
 
                 Object element = route.handle(context.requestWrapper(), context.responseWrapper());
-                if (!context.responseWrapper().isRedirected()) {
-                	result = route.render(element);
-                }
+                result = route.render(element);
             }
 
             if (result != null) {

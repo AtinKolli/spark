@@ -7,7 +7,6 @@ import org.powermock.reflect.Whitebox;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -94,41 +93,12 @@ public class ResponseTest {
         verify(httpServletResponse).addHeader(finalHeaderKey, finalHeaderValue);
     }
 
-    @Test
-    public void testIntHeader() {
-        response.header("X-Processing-Time", 10);
-        verify(httpServletResponse).addIntHeader("X-Processing-Time", 10);
-    }
-
-    @Test
-    public void testJavaUtilDateHeader() {
-        Date now = new Date();
-        response.header("X-Processing-Since", now);
-        verify(httpServletResponse).addDateHeader("X-Processing-Since", now.getTime());
-    }
-
-    @Test
-    public void testJavaSqlDateHeader() {
-        Date now = new Date();
-        response.header("X-Processing-Since", new java.sql.Date(now.getTime()));
-        verify(httpServletResponse).addDateHeader("X-Processing-Since", now.getTime());
-    }
-
-    @Test
-    public void testInstantDateHeader() {
-        Date now = new Date();
-        response.header("X-Processing-Since", now.toInstant());
-        verify(httpServletResponse).addDateHeader("X-Processing-Since", now.getTime());
-    }
-
     private void validateCookieContent(Cookie cookie,
-                                       String domain,
                                        String path,
                                        String value,
                                        int maxAge,
                                        boolean secured,
                                        boolean httpOnly) {
-        assertEquals("Should return cookie domain specified", domain, cookie.getDomain());
         assertEquals("Should return cookie path specified", path, cookie.getPath());
         assertEquals("Should return cookie value specified", value, cookie.getValue());
         assertEquals("Should return cookie max age specified", maxAge, cookie.getMaxAge());
@@ -139,7 +109,6 @@ public class ResponseTest {
     @Test
     public void testCookie_whenNameAndValueParameters_shouldAddCookieSuccessfully() {
 
-        final String finalDomain = "";
         final String finalPath = "";
         final String finalName = "cookie_name";
         final String finalValue = "Test Cookie";
@@ -150,13 +119,12 @@ public class ResponseTest {
         response.cookie(finalName, finalValue);
 
         verify(httpServletResponse).addCookie(cookieArgumentCaptor.capture());
-        validateCookieContent(cookieArgumentCaptor.getValue(), finalDomain, finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
+        validateCookieContent(cookieArgumentCaptor.getValue(), finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
     }
 
     @Test
     public void testCookie_whenNameValueAndMaxAgeParameters_shouldAddCookieSuccessfully() {
 
-        final String finalDomain = "";
         final String finalPath = "";
         final String finalName = "cookie_name";
         final String finalValue = "Test Cookie";
@@ -167,12 +135,11 @@ public class ResponseTest {
         response.cookie(finalName, finalValue, finalMaxAge);
 
         verify(httpServletResponse).addCookie(cookieArgumentCaptor.capture());
-        validateCookieContent(cookieArgumentCaptor.getValue(), finalDomain, finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
+        validateCookieContent(cookieArgumentCaptor.getValue(), finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
     }
 
     @Test
     public void testCookie_whenNameValueMaxAgeAndSecuredParameters_shouldAddCookieSuccessfully() {
-        final String finalDomain = "";
         final String finalPath = "";
         final String finalName = "cookie_name";
         final String finalValue = "Test Cookie";
@@ -183,12 +150,11 @@ public class ResponseTest {
         response.cookie(finalName, finalValue, finalMaxAge, finalSecured);
 
         verify(httpServletResponse).addCookie(cookieArgumentCaptor.capture());
-        validateCookieContent(cookieArgumentCaptor.getValue(), finalDomain, finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
+        validateCookieContent(cookieArgumentCaptor.getValue(), finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
     }
 
     @Test
     public void testCookie_whenNameValueMaxAgeSecuredAndHttpOnlyParameters_shouldAddCookieSuccessfully() {
-        final String finalDomain = "";
         final String finalPath = "";
         final String finalName = "cookie_name";
         final String finalValue = "Test Cookie";
@@ -199,12 +165,11 @@ public class ResponseTest {
         response.cookie(finalName, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
 
         verify(httpServletResponse).addCookie(cookieArgumentCaptor.capture());
-        validateCookieContent(cookieArgumentCaptor.getValue(), finalDomain, finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
+        validateCookieContent(cookieArgumentCaptor.getValue(), finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
     }
 
     @Test
     public void testCookie_whenPathNameValueMaxAgeAndSecuredParameters_shouldAddCookieSuccessfully() {
-        final String finalDomain = "";
         final String finalPath = "/cookie/SetCookie";
         final String finalName = "cookie_name";
         final String finalValue = "Test Cookie";
@@ -215,12 +180,11 @@ public class ResponseTest {
         response.cookie(finalPath, finalName, finalValue, finalMaxAge, finalSecured);
 
         verify(httpServletResponse).addCookie(cookieArgumentCaptor.capture());
-        validateCookieContent(cookieArgumentCaptor.getValue(), finalDomain, finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
+        validateCookieContent(cookieArgumentCaptor.getValue(), finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
     }
 
     @Test
     public void testCookie_whenPathNameValueMaxAgeSecuredAndHttpOnlyParameters_shouldAddCookieSuccessfully() {
-        final String finalDomain = "";
         final String finalPath = "/cookie/SetCookie";
         final String finalName = "cookie_name";
         final String finalValue = "Test Cookie";
@@ -231,23 +195,7 @@ public class ResponseTest {
         response.cookie(finalPath, finalName, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
 
         verify(httpServletResponse).addCookie(cookieArgumentCaptor.capture());
-        validateCookieContent(cookieArgumentCaptor.getValue(), finalDomain, finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
-    }
-
-    @Test
-    public void testCookie_whenDomainPathNameValueMaxAgeSecuredAndHttpOnlyParameters_shouldAddCookieSuccessfully() {
-        final String finalDomain = "example.com";
-        final String finalPath = "/cookie/SetCookie";
-        final String finalName = "cookie_name";
-        final String finalValue = "Test Cookie";
-        final int finalMaxAge = 86400;
-        final boolean finalSecured = true;
-        final boolean finalHttpOnly = true;
-
-        response.cookie(finalDomain, finalPath, finalName, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
-
-        verify(httpServletResponse).addCookie(cookieArgumentCaptor.capture());
-        validateCookieContent(cookieArgumentCaptor.getValue(), finalDomain, finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
+        validateCookieContent(cookieArgumentCaptor.getValue(), finalPath, finalValue, finalMaxAge, finalSecured, finalHttpOnly);
     }
 
     @Test

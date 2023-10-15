@@ -18,9 +18,6 @@ package spark.embeddedserver.jetty;
 
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.jetty.server.ForwardedRequestCustomizer;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -41,12 +38,11 @@ public class SocketConnectorFactory {
      * @param port   port
      * @return - a server jetty
      */
-    public static ServerConnector createSocketConnector(Server server, String host, int port, boolean trustForwardHeaders) {
+    public static ServerConnector createSocketConnector(Server server, String host, int port) {
         Assert.notNull(server, "'server' must not be null");
         Assert.notNull(host, "'host' must not be null");
 
-        HttpConnectionFactory httpConnectionFactory = createHttpConnectionFactory(trustForwardHeaders);
-        ServerConnector connector = new ServerConnector(server, httpConnectionFactory);
+        ServerConnector connector = new ServerConnector(server);
         initializeConnector(connector, host, port);
         return connector;
     }
@@ -64,21 +60,15 @@ public class SocketConnectorFactory {
     public static ServerConnector createSecureSocketConnector(Server server,
                                                               String host,
                                                               int port,
-                                                              SslStores sslStores,
-                                                              boolean trustForwardHeaders) {
+                                                              SslStores sslStores) {
         Assert.notNull(server, "'server' must not be null");
         Assert.notNull(host, "'host' must not be null");
         Assert.notNull(sslStores, "'sslStores' must not be null");
 
-        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-        sslContextFactory.setKeyStorePath(sslStores.keystoreFile());
+        SslContextFactory sslContextFactory = new SslContextFactory(sslStores.keystoreFile());
 
         if (sslStores.keystorePassword() != null) {
             sslContextFactory.setKeyStorePassword(sslStores.keystorePassword());
-        }
-
-        if (sslStores.certAlias() != null) {
-            sslContextFactory.setCertAlias(sslStores.certAlias());
         }
 
         if (sslStores.trustStoreFile() != null) {
@@ -89,14 +79,7 @@ public class SocketConnectorFactory {
             sslContextFactory.setTrustStorePassword(sslStores.trustStorePassword());
         }
 
-        if (sslStores.needsClientCert()) {
-            sslContextFactory.setNeedClientAuth(true);
-            sslContextFactory.setWantClientAuth(true);
-        }
-
-        HttpConnectionFactory httpConnectionFactory = createHttpConnectionFactory(trustForwardHeaders);
-
-        ServerConnector connector = new ServerConnector(server, sslContextFactory, httpConnectionFactory);
+        ServerConnector connector = new ServerConnector(server, sslContextFactory);
         initializeConnector(connector, host, port);
         return connector;
     }
@@ -104,16 +87,11 @@ public class SocketConnectorFactory {
     private static void initializeConnector(ServerConnector connector, String host, int port) {
         // Set some timeout options to make debugging easier.
         connector.setIdleTimeout(TimeUnit.HOURS.toMillis(1));
+        connector.setSoLingerTime(-1);
         connector.setHost(host);
         connector.setPort(port);
     }
 
-    private static HttpConnectionFactory createHttpConnectionFactory(boolean trustForwardHeaders) {
-        HttpConfiguration httpConfig = new HttpConfiguration();
-        httpConfig.setSecureScheme("https");
-        if(trustForwardHeaders)
-            httpConfig.addCustomizer(new ForwardedRequestCustomizer());
-        return new HttpConnectionFactory(httpConfig);
-    }
-
 }
+
+

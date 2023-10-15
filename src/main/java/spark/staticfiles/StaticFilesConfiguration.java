@@ -17,7 +17,6 @@
 package spark.staticfiles;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,9 +71,6 @@ public class StaticFilesConfiguration {
             }
 
         } catch (DirectoryTraversal.DirectoryTraversalDetection directoryTraversalDetection) {
-            httpResponse.setStatus(400);
-            httpResponse.getWriter().write("Bad request");
-            httpResponse.getWriter().flush();
             LOG.warn(directoryTraversalDetection.getMessage() + " directory traversal detection for path: "
                              + httpRequest.getPathInfo());
         }
@@ -96,12 +92,11 @@ public class StaticFilesConfiguration {
                         httpResponse.setHeader(MimeType.CONTENT_TYPE, MimeType.fromResource(resource));
                     }
                     customHeaders.forEach(httpResponse::setHeader); //add all user-defined headers to response
+                    OutputStream wrappedOutputStream = GzipUtils.checkAndWrap(httpRequest, httpResponse, false);
 
-                    try (InputStream inputStream = resource.getInputStream();
-                         OutputStream wrappedOutputStream = GzipUtils.checkAndWrap(httpRequest, httpResponse, false)) {
-                        IOUtils.copy(inputStream, wrappedOutputStream);
-                    }
-
+                    IOUtils.copy(resource.getInputStream(), wrappedOutputStream);
+                    wrappedOutputStream.flush();
+                    wrappedOutputStream.close();
                     return true;
                 }
             }
@@ -123,14 +118,6 @@ public class StaticFilesConfiguration {
         staticResourcesSet = false;
         externalStaticResourcesSet = false;
     }
-    
-    public boolean isStaticResourcesSet() {
-        return staticResourcesSet;
-    }
-    
-    public boolean isExternalStaticResourcesSet() {
-        return externalStaticResourcesSet;
-    }
 
     /**
      * Configures location for static resources
@@ -148,8 +135,10 @@ public class StaticFilesConfiguration {
 
             staticResourceHandlers.add(new ClassPathResourceHandler(folder, "index.html"));
             LOG.info("StaticResourceHandler configured with folder = " + folder);
+            StaticFilesFolder.localConfiguredTo(folder);
             staticResourcesSet = true;
         }
+
     }
 
     /**
@@ -177,8 +166,10 @@ public class StaticFilesConfiguration {
                 LOG.error("Error when creating external StaticResourceHandler", e);
             }
 
+            StaticFilesFolder.externalConfiguredTo(folder);
             externalStaticResourcesSet = true;
         }
+
     }
 
     public static StaticFilesConfiguration create() {

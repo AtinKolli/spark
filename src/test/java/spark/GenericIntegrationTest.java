@@ -25,15 +25,14 @@ import org.slf4j.LoggerFactory;
 import spark.embeddedserver.jetty.websocket.WebSocketTestClient;
 import spark.embeddedserver.jetty.websocket.WebSocketTestHandler;
 import spark.examples.exception.BaseException;
-import spark.examples.exception.JWGmeligMeylingException;
 import spark.examples.exception.NotFoundException;
 import spark.examples.exception.SubclassOfBaseException;
 import spark.util.SparkTestUtil;
 import spark.util.SparkTestUtil.UrlResponse;
 
 import static spark.Spark.after;
-import static spark.Spark.afterAfter;
 import static spark.Spark.before;
+import static spark.Spark.done;
 import static spark.Spark.exception;
 import static spark.Spark.externalStaticFileLocation;
 import static spark.Spark.get;
@@ -88,12 +87,29 @@ public class GenericIntegrationTest {
             halt(401, "{\"message\": \"Go Away!\"}");
         });
 
-        get("/hi", "application/json", (q, a) -> "{\"message\": \"Hello World\"}");
-        get("/hi", (q, a) -> "Hello World!");
-        get("/binaryhi", (q, a) -> "Hello World!".getBytes());
-        get("/bytebufferhi", (q, a) -> ByteBuffer.wrap("Hello World!".getBytes()));
-        get("/inputstreamhi", (q, a) -> new ByteArrayInputStream("Hello World!".getBytes("utf-8")));
-        get("/param/:param", (q, a) -> "echo: " + q.params(":param"));
+        get("/hi", "application/json", (q, a) -> {
+            return "{\"message\": \"Hello World\"}";
+        });
+
+        get("/hi", (q, a) -> {
+            return "Hello World!";
+        });
+
+        get("/binaryhi", (q, a) -> {
+            return "Hello World!".getBytes();
+        });
+
+        get("/bytebufferhi", (q, a) -> {
+            return ByteBuffer.wrap("Hello World!".getBytes());
+        });
+
+        get("/inputstreamhi", (q, a) -> {
+            return new ByteArrayInputStream("Hello World!".getBytes("utf-8"));
+        });
+
+        get("/param/:param", (q, a) -> {
+            return "echo: " + q.params(":param");
+        });
 
         path("/firstPath", () -> {
             before("/*", (q, a) -> a.header("before-filter-ran", "true"));
@@ -106,17 +122,26 @@ public class GenericIntegrationTest {
             });
         });
 
-        get("/paramandwild/:param/stuff/*", (q, a) -> "paramandwild: " + q.params(":param") + q.splat()[0]);
-        get("/paramwithmaj/:paramWithMaj", (q, a) -> "echo: " + q.params(":paramWithMaj"));
+        get("/paramandwild/:param/stuff/*", (q, a) -> {
+            return "paramandwild: " + q.params(":param") + q.splat()[0];
+        });
 
-        get("/templateView", (q, a) ->  new ModelAndView("Hello", "my view"), new TemplateEngine() {
+        get("/paramwithmaj/:paramWithMaj", (q, a) -> {
+            return "echo: " + q.params(":paramWithMaj");
+        });
+
+        get("/templateView", (q, a) -> {
+            return new ModelAndView("Hello", "my view");
+        }, new TemplateEngine() {
             @Override
             public String render(ModelAndView modelAndView) {
                 return modelAndView.getModel() + " from " + modelAndView.getViewName();
             }
         });
 
-        get("/", (q, a) -> "Hello Root!");
+        get("/", (q, a) -> {
+            return "Hello Root!";
+        });
 
         post("/poster", (q, a) -> {
             String body = q.body();
@@ -129,7 +154,9 @@ public class GenericIntegrationTest {
             return "Method Override Worked";
         });
 
-        get("/post_via_get", (q, a) -> "Method Override Did Not Work");
+        get("/post_via_get", (q, a) -> {
+            return "Method Override Did Not Work";
+        });
 
         patch("/patcher", (q, a) -> {
             String body = q.body();
@@ -146,8 +173,6 @@ public class GenericIntegrationTest {
             session.attribute(key, "22222");
             return session.attribute(key);
         });
-
-        get("/ip", (request, response) -> request.ip());
 
         after("/hi", (q, a) -> {
 
@@ -170,14 +195,6 @@ public class GenericIntegrationTest {
             throw new NotFoundException();
         });
 
-        get("/throwmeyling", (q, a) -> {
-            throw new JWGmeligMeylingException();
-        });
-
-        exception(JWGmeligMeylingException.class, (meylingException, q, a) -> {
-            a.body(meylingException.trustButVerify());
-        });
-
         exception(UnsupportedOperationException.class, (exception, q, a) -> {
             a.body("Exception handled");
         });
@@ -195,17 +212,19 @@ public class GenericIntegrationTest {
             throw new RuntimeException();
         });
 
-        afterAfter("/exception", (request, response) -> {
+        done("/exception", (request, response) -> {
             response.body("done executed for exception");
         });
 
-        post("/nice", (request, response) -> "nice response");
+        post("/nice", (request, response) -> {
+            return "nice response";
+        });
 
-        afterAfter("/nice", (request, response) -> {
+        done("/nice", (request, response) -> {
             response.header("post-process", "nice done response");
         });
 
-        afterAfter((request, response) -> {
+        done((request, response) -> {
             response.header("post-process-all", "nice done response after all");
         });
 
@@ -287,19 +306,6 @@ public class GenericIntegrationTest {
     }
 
     @Test
-    public void testXForwardedFor() throws Exception {
-        final String xForwardedFor = "XXX.XXX.XXX.XXX";
-        Map<String, String> headers = new HashMap<>();
-        headers.put("X-Forwarded-For", xForwardedFor);
-
-        UrlResponse response = testUtil.doMethod("GET", "/ip", null, false, "text/html", headers);
-        Assert.assertEquals(xForwardedFor, response.body);
-
-        response = testUtil.doMethod("GET", "/ip", null, false, "text/html", null);
-        Assert.assertNotEquals(xForwardedFor, response.body);
-    }
-
-    @Test
     public void testGetRoot() throws Exception {
         UrlResponse response = testUtil.doMethod("GET", "/", null);
         Assert.assertEquals(200, response.status);
@@ -334,14 +340,6 @@ public class GenericIntegrationTest {
         UrlResponse response = testUtil.doMethod("GET", "/param/" + encoded, null);
         Assert.assertEquals(200, response.status);
         Assert.assertEquals("echo: " + polyglot, response.body);
-    }
-
-    @Test
-    public void testPathParamsWithPlusSign() throws Exception {
-        String pathParamWithPlusSign = "not+broken+path+param";
-        UrlResponse response = testUtil.doMethod("GET", "/param/" + pathParamWithPlusSign, null);
-        Assert.assertEquals(200, response.status);
-        Assert.assertEquals("echo: " + pathParamWithPlusSign, response.body);
     }
 
     @Test
@@ -481,12 +479,6 @@ public class GenericIntegrationTest {
         UrlResponse response = testUtil.doMethod("GET", "/thrownotfound", null);
         Assert.assertEquals(NOT_FOUND_BRO, response.body);
         Assert.assertEquals(404, response.status);
-    }
-
-    @Test
-    public void testTypedExceptionMapper() throws Exception {
-        UrlResponse response = testUtil.doMethod("GET", "/throwmeyling", null);
-        Assert.assertEquals(new JWGmeligMeylingException().trustButVerify(), response.body);
     }
 
     @Test

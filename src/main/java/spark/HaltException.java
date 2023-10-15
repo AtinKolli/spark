@@ -30,21 +30,18 @@ public class HaltException extends RuntimeException {
     private String body = null;
 
     HaltException() {
-        super(null, null, false, false);
+        super();
     }
 
     HaltException(int statusCode) {
-        this();
         this.statusCode = statusCode;
     }
 
     HaltException(String body) {
-        this();
         this.body = body;
     }
 
     HaltException(int statusCode, String body) {
-        this();
         this.statusCode = statusCode;
         this.body = body;
     }
